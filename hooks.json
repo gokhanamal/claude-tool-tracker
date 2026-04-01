@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -c '{timestamp: (now | todate), event: \"PreToolUse\", session_id: .session_id, tool_name: .tool_name, tool_input: .tool_input}' >> ~/.claude/tool-invocations.jsonl",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -c '{timestamp: (now | todate), event: \"PostToolUse\", session_id: .session_id, tool_name: .tool_name, tool_input: .tool_input, tool_response: .tool_response}' >> ~/.claude/tool-invocations.jsonl",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
