@@ -72,6 +72,7 @@
       gap: 16px;
       padding: 0 32px 24px;
     }
+    .card.full { grid-column: 1 / -1; }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -86,7 +87,6 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-    .card.full { grid-column: 1 / -1; }
 
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -244,16 +244,8 @@
       <div class="chart-container"><canvas id="chart-tools"></canvas></div>
     </div>
     <div class="card">
-      <h2>Activity Timeline</h2>
-      <div class="chart-container"><canvas id="chart-timeline"></canvas></div>
-    </div>
-    <div class="card">
       <h2>Sessions</h2>
       <div class="scrollable" id="session-list"></div>
-    </div>
-    <div class="card">
-      <h2>Event Split</h2>
-      <div class="chart-container"><canvas id="chart-events"></canvas></div>
     </div>
     <div class="card full">
       <h2>Recent Invocations</h2>
@@ -277,7 +269,7 @@
   <script>
     let allData = [];
     let filteredData = [];
-    let toolChart, timelineChart, eventChart;
+    let toolChart;
     let detailIndex = -1;
 
     function escapeHtml(s) {
@@ -491,45 +483,6 @@
         }
       });
 
-      const timeGroups = {};
-      filteredData.forEach(d => {
-        const hour = d.timestamp.slice(0, 13) + ':00';
-        timeGroups[hour] = (timeGroups[hour] || 0) + 1;
-      });
-      const timeLabels = Object.keys(timeGroups).sort();
-
-      if (timelineChart) timelineChart.destroy();
-      timelineChart = new Chart(document.getElementById('chart-timeline'), {
-        type: 'line',
-        data: {
-          labels: timeLabels.map(t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })),
-          datasets: [{ data: timeLabels.map(t => timeGroups[t]), borderColor: '#c084fc', backgroundColor: 'rgba(192,132,252,0.1)', fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#c084fc' }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { color: '#2e3140' }, ticks: { color: '#8b8fa3', maxRotation: 45, font: { size: 10 } } },
-            y: { grid: { color: '#2e3140' }, ticks: { color: '#8b8fa3', font: { size: 10 } }, beginAtZero: true }
-          }
-        }
-      });
-
-      const preCt = filteredData.filter(d => d.event === 'PreToolUse').length;
-      const postCt = filteredData.filter(d => d.event === 'PostToolUse').length;
-
-      if (eventChart) eventChart.destroy();
-      eventChart = new Chart(document.getElementById('chart-events'), {
-        type: 'doughnut',
-        data: {
-          labels: ['PreToolUse', 'PostToolUse'],
-          datasets: [{ data: [preCt, postCt], backgroundColor: ['#818cf8', '#4ade80'], borderWidth: 0, spacing: 2 }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false, cutout: '65%',
-          plugins: { legend: { position: 'bottom', labels: { color: '#8b8fa3', font: { family: 'SF Mono, monospace', size: 11 }, padding: 16 } } }
-        }
-      });
     }
 
     function renderSessions() {
