@@ -130,10 +130,77 @@
     .session-id { font-size: 12px; color: var(--accent2); }
     .session-meta { font-size: 11px; color: var(--text2); margin-top: 3px; }
 
+    /* Detail panel */
+    .detail-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .detail-overlay.open { opacity: 1; pointer-events: auto; }
+    .detail-panel {
+      position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 90vw);
+      background: var(--surface); border-left: 1px solid var(--border);
+      z-index: 101; transform: translateX(100%); transition: transform 0.25s ease;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .detail-panel.open { transform: translateX(0); }
+    .detail-header {
+      padding: 20px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .detail-header h2 { font-size: 14px; font-weight: 600; }
+    .detail-close {
+      background: none; border: 1px solid var(--border); color: var(--text2);
+      width: 28px; height: 28px; border-radius: 6px; cursor: pointer;
+      font-size: 16px; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .detail-close:hover { color: var(--text); border-color: var(--accent); }
+    .detail-body {
+      flex: 1; overflow-y: auto; padding: 20px 24px;
+    }
+    .detail-body::-webkit-scrollbar { width: 6px; }
+    .detail-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .detail-section { margin-bottom: 20px; }
+    .detail-section-title {
+      font-size: 11px; color: var(--text2); text-transform: uppercase;
+      letter-spacing: 0.06em; margin-bottom: 8px;
+    }
+    .detail-meta-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .detail-meta-item { }
+    .detail-meta-item .dm-label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+    .detail-meta-item .dm-value { font-size: 13px; margin-top: 3px; word-break: break-all; }
+    .detail-json {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; font-size: 12px; line-height: 1.6;
+      overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+    }
+    .detail-json .json-key { color: var(--accent); }
+    .detail-json .json-string { color: var(--green); }
+    .detail-json .json-number { color: var(--amber); }
+    .detail-json .json-bool { color: var(--cyan); }
+    .detail-json .json-null { color: var(--text2); }
+    .detail-json .json-bracket { color: var(--text2); }
+    .detail-nav {
+      padding: 12px 24px; border-top: 1px solid var(--border);
+      display: flex; gap: 8px; flex-shrink: 0;
+    }
+    .detail-nav button {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text2); padding: 7px 12px; border-radius: 6px;
+      cursor: pointer; font-family: inherit; font-size: 12px; transition: all 0.15s;
+    }
+    .detail-nav button:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+    .detail-nav button:disabled { opacity: 0.3; cursor: default; }
+    tr.clickable { cursor: pointer; }
+
     @media (max-width: 800px) {
       .grid { grid-template-columns: 1fr; }
       .stats { grid-template-columns: repeat(2, 1fr); }
       header, .stats, .grid, .filters { padding-left: 16px; padding-right: 16px; }
+      .detail-panel { width: 100vw; }
     }
   </style>
 </head>
@@ -194,10 +261,24 @@
     </div>
   </div>
 
+  <div class="detail-overlay" id="detail-overlay"></div>
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-header">
+      <h2 id="detail-title">Invocation Detail</h2>
+      <button class="detail-close" id="detail-close">&times;</button>
+    </div>
+    <div class="detail-body" id="detail-body"></div>
+    <div class="detail-nav">
+      <button id="detail-prev">Prev</button>
+      <button id="detail-next">Next</button>
+    </div>
+  </div>
+
   <script>
     let allData = [];
     let filteredData = [];
     let toolChart, timelineChart, eventChart;
+    let detailIndex = -1;
 
     function escapeHtml(s) {
       const div = document.createElement('div');
@@ -348,8 +429,10 @@
       table.appendChild(thead);
 
       const tbody = document.createElement('tbody');
-      filteredData.slice(0, 200).forEach(d => {
+      filteredData.slice(0, 200).forEach((d, i) => {
         const tr = document.createElement('tr');
+        tr.className = 'clickable';
+        tr.addEventListener('click', () => openDetail(i));
 
         const tdTime = document.createElement('td');
         tdTime.textContent = new Date(d.timestamp).toLocaleString();
