@@ -6,6 +6,8 @@ Uses Claude Code [hooks](https://docs.anthropic.com/en/docs/claude-code/hooks) t
 
 ![Dashboard](https://img.shields.io/badge/dashboard-local-blueviolet) ![Python 3](https://img.shields.io/badge/python-3.x-blue) ![jq](https://img.shields.io/badge/requires-jq-orange)
 
+![Dashboard overview](screenshots/dashboard.png)
+
 ## What it does
 
 - **PreToolUse hook** — logs timestamp, session ID, tool name, and tool input *before* every tool runs
@@ -34,16 +36,17 @@ That's it. The setup script will:
 python3 ~/.claude/dashboard/serve.py
 ```
 
-Opens at [http://127.0.0.1:7391](http://127.0.0.1:7391). The dashboard auto-refreshes every 10 seconds.
+Opens at [http://127.0.0.1:7391](http://127.0.0.1:7391). Use the Refresh button to reload data.
 
 ### Dashboard features
 
 - **Stats** — total invocations, unique tools, session count, time span
 - **Tool usage** — horizontal bar chart ranking tools by frequency
-- **Activity timeline** — invocations per hour
 - **Sessions** — clickable session list that filters the whole dashboard
-- **Event split** — PreToolUse vs PostToolUse doughnut chart
 - **Invocation table** — filterable, searchable, shows input summaries
+- **Detail panel** — click any row to see full tool input and syntax-highlighted response
+
+![Detail panel](screenshots/detail-panel.png)
 
 ## Query the log directly
 
